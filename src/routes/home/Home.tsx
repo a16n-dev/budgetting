@@ -2,8 +2,8 @@ import { Button, Sheet, Stack, Typography } from '@mui/joy';
 import { useQuery } from 'react-query';
 
 import Container from '../../components/layout/Container/Container.tsx';
-import supabase from '../../supabase/supabase.ts';
 import { RouterLink } from '../../components/layout/RouterLink/RouterLink.tsx';
+import supabase from '../../supabase/supabase.ts';
 
 const Home = () => {
   const { data } = useQuery(
@@ -19,18 +19,20 @@ const Home = () => {
   return (
     <Container sx={{ py: 2 }}>
       <Stack spacing={2}>
-        <Typography level={'h1'}>{'Budgetting'}</Typography>
+        <Typography level={'h1'} color={'primary'}>
+          {'Spensee'}
+        </Typography>
         <Sheet sx={{ p: 2 }}>
           <Stack spacing={2}>
-            <Typography level={'h3'}>Import Transactions</Typography>
+            <Typography level={'h3'}>{'Import Transactions'}</Typography>
             <Button component={RouterLink} to={'/import/wise'}>
-              Import from Wise
+              {'Import from Wise'}
             </Button>
           </Stack>
         </Sheet>
         <Sheet sx={{ p: 2 }}>
           <Stack spacing={2}>
-            <Typography level={'h3'}>Categorise</Typography>
+            <Typography level={'h3'}>{'Categorise'}</Typography>
             {data?.count ? (
               <Button
                 component={RouterLink}
@@ -38,7 +40,7 @@ const Home = () => {
                 variant={'outlined'}
               >{`Categorise ${data?.count} transactions`}</Button>
             ) : (
-              <Typography>🎉 All caught up!</Typography>
+              <Typography>{'🎉 All caught up!'}</Typography>
             )}
           </Stack>
         </Sheet>

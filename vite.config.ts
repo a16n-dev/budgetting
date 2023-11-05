@@ -14,9 +14,9 @@ export default defineConfig({
       includeAssets: ['icon_512.png'],
       manifest: {
         lang: 'en-us',
-        name: 'Geo Learn',
-        short_name: 'Geo Learn',
-        description: 'Geography Trivia',
+        name: 'Spensee',
+        short_name: 'Spensee',
+        description: 'Spend tracking',
         start_url: '/',
         background_color: '#FCFDFD',
         theme_color: '#000000',
