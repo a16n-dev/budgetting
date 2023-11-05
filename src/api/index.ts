@@ -19,7 +19,9 @@ export const insertTransactions = async (data: CreateTransactionDto[]) => {
       household: 1,
     })),
     {
+      onConflict: 'source_id',
       ignoreDuplicates: true,
+      count: 'exact',
     },
   );
 };

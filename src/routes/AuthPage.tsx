@@ -38,14 +38,6 @@ const AuthPage = () => {
               // theme={'dark'}
               appearance={{
                 theme: ThemeSupa,
-                variables: {
-                  default: {
-                    colors: {
-                      brand: '#F28434',
-                      brandAccent: '#CF5F0D',
-                    },
-                  },
-                },
               }}
             />
           </Sheet>

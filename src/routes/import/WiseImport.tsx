@@ -1,49 +1,69 @@
 import { Button, Container, Sheet, Stack, Table, Typography } from '@mui/joy';
-import { useState } from 'react';
-import { CreateTransactionDto, insertTransactions } from '../../api';
-import { parse } from 'papaparse';
-import { formatCurrency } from '../../utils/formatCurrency.ts';
 import { format, parse as parseDate } from 'date-fns';
 import { ArrowRight } from 'lucide-react';
+import { parse } from 'papaparse';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { CreateTransactionDto, insertTransactions } from '../../api';
+import { formatCurrency } from '../../utils/formatCurrency.ts';
+
+async function generateHash(input: string) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(input);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  return bufferToHex(hashBuffer);
+}
+
+function bufferToHex(buffer: ArrayBuffer) {
+  return Array.from(new Uint8Array(buffer))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
 interface WiseTransaction {
   ID: string;
   Status: string;
   Direction: 'OUT' | 'IN' | 'NEUTRAL';
-  'Created on': string; //'2023-11-04 19:58:05';
-  'Finished on': string; //'2023-11-04 19:58:05';
-  'Source fee amount': string; //'0.00';
+  'Created on': string;
+  'Finished on': string;
+  'Source fee amount': string;
   'Source fee currency': string;
   'Target fee amount': string;
   'Target fee currency': string;
-  'Source name': string; //'Alexander Liam Nicholson';
+  'Source name': string;
   'Source amount': string;
-  'Source currency': string; //'USD';
-  'Target name': string; //"Trader Joe's";
-  'Target amount (after fees)': string; //'10.48';
-  'Target currency': string; //'USD';
-  'Exchange rate': string; //'1.00000000';
-  Reference: string; // '';
-  Batch: string; //'';
+  'Source currency': string;
+  'Target name': string;
+  'Target amount (after fees)': string;
+  'Target currency': string;
+  'Exchange rate': string;
+  Reference: string;
+  Batch: string;
 }
 
-const parseWiseCSV = (content: string): CreateTransactionDto[] => {
+const parseWiseCSV = async (
+  content: string,
+): Promise<CreateTransactionDto[]> => {
   const data = parse<WiseTransaction>(content.trim(), { header: true });
 
-  const entries = data.data
-    .filter((d) => d['Direction'] !== 'NEUTRAL')
-    .map((d) => {
-      const amount = Number(d['Target amount (after fees)']);
+  const entries = await Promise.all(
+    data.data
+      .filter((d) => d['Direction'] !== 'NEUTRAL')
+      .map(async (d) => {
+        const amount = Number(d['Target amount (after fees)']);
 
-      return {
-        date: parseDate(d['Created on'], 'yyyy-MM-dd HH:mm:ss', new Date()),
-        amount: d['Direction'] === 'IN' ? amount : -amount,
-        name: d['Target name'],
-        source: 'Wise',
-        sourceId: d.ID,
-      };
-    });
+        const id = await generateHash(JSON.stringify(d));
+
+        return {
+          date: parseDate(d['Created on'], 'yyyy-MM-dd HH:mm:ss', new Date()),
+          amount: d['Direction'] === 'IN' ? amount : -amount,
+          name: d['Target name'],
+          source: 'Wise',
+          sourceId: id,
+        };
+      }),
+  );
 
   // consolidate transactions with the same source ID
   const consolidatedTransactions = entries.reduce((acc, curr) => {
@@ -70,9 +90,10 @@ const WiseImport = () => {
 
     const reader = new FileReader();
 
-    reader.onload = function (e) {
+    reader.onload = async (e) => {
       const content = e.target?.result as string;
-      setTransactions(parseWiseCSV(content));
+      const csv = await parseWiseCSV(content);
+      setTransactions(csv);
     };
 
     reader.readAsText(file);
@@ -89,20 +110,20 @@ const WiseImport = () => {
   return (
     <Container sx={{ py: 2 }}>
       <Stack spacing={2}>
-        <Typography level={'h1'}>Import from Wise</Typography>
+        <Typography level={'h1'}>{'Import from Wise'}</Typography>
         <Sheet sx={{ p: 2 }}>
           <Stack direction={'row'}>
             <Stack sx={{ flexGrow: 1 }} direction={'row'}>
               <input
-                accept='text/csv'
+                accept={'text/csv'}
                 style={{ display: 'none' }}
-                id='raised-button-file'
+                id={'raised-button-file'}
                 multiple
-                type='file'
+                type={'file'}
                 onChange={onFileChange}
               />
-              <label htmlFor='raised-button-file'>
-                <Button component='span'>Choose CSV file</Button>
+              <label htmlFor={'raised-button-file'}>
+                <Button component={'span'}>{'Choose CSV file'}</Button>
               </label>
             </Stack>
             <Button
@@ -110,7 +131,7 @@ const WiseImport = () => {
               disabled={!transactions}
               endDecorator={<ArrowRight />}
             >
-              Continue
+              {'Continue'}
             </Button>
           </Stack>
         </Sheet>
@@ -121,9 +142,9 @@ const WiseImport = () => {
             <Table>
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Amount</th>
-                  <th>Name</th>
+                  <th>{'Date'}</th>
+                  <th>{'Amount'}</th>
+                  <th>{'Name'}</th>
                 </tr>
               </thead>
               <tbody>
